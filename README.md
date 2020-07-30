@@ -18,3 +18,5 @@ features:
 results:
 - after one key is collected, another will repopulate at a random location until all are collected and character will receive extra moves as a bonus
 - when ten keys are collected, there will be a congratulations screen to indicate that you've saved the town
+
+the demo game can be found here: https://www.youtube.com/watch?v=5DLO4Aj20HA&feature=emb_logo
