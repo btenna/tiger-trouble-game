@@ -6,9 +6,7 @@ let p = new p5(() => {});
   //     <script src="path/to/p5.sound.js"></script>
   //      <script src="http://caniuse.com/audio-api"></script>
 
-  //p.preload = function () {
-  //let romanHoliday = p.loadSound ("https://cdn.glitch.com/2665923f-eb16-4b6e-9c3b-2bfe24cee104%2FRoman%20Holiday%20-%20Nicki%20Minaj%20-%20(Instrumental).mp3?v=1596035581028");
-  //}
+  
 
 let bitFont = p.loadFont(
   "https://cdn.glitch.com/2665923f-eb16-4b6e-9c3b-2bfe24cee104%2FPressStart2P-vaV7.ttf?v=1595817566106");
@@ -31,9 +29,14 @@ let town = p.loadImage(
   "https://cdn.glitch.com/2665923f-eb16-4b6e-9c3b-2bfe24cee104%2Ftown.jpeg?v=1595986906913"
 );
 
+let heart = p.loadImage (
+  "https://cdn.glitch.com/2665923f-eb16-4b6e-9c3b-2bfe24cee104%2Fd4r844m-ea976dcf-7494-44d6-859a-0edf5e67ed65.png?v=1596071191407"
+);
+
 let keyImage = p.loadImage("https://cdn.glitch.com/2665923f-eb16-4b6e-9c3b-2bfe24cee104%2FKey%20(2).png?v=1596027531293");
 let keyX = 300, keyY = 200;
 // canva detail variables
+let heartX = 400, heartY = 400;
 let backgroundColor;
 //key triggers
 let keyOne = 49;
@@ -45,7 +48,7 @@ let girlX, girlY, girlWidth, girlHeight, girlVelocity;
 let tigerX, tigerY, tigerWidth, tigerHeight, tigerVelocity;
 let countdown, keysCollected;
 let romanHoliday;
-let keyCount = 0;
+let keyCount;
 
 
 //variable so we can implement the same function that will do infinite scroll for all backgrounds. call backgroundScroll(backgroundType)
@@ -55,24 +58,27 @@ let hit = false;
 let startButton;
 let col = p.color("orange");
 
+
+  p.preload = function () {
+  romanHoliday = p.loadSound ("https://cdn.glitch.com/2665923f-eb16-4b6e-9c3b-2bfe24cee104%2FRoman%20Holiday%20-%20Nicki%20Minaj%20-%20(Instrumental).mp3?v=1596035581028");
+  }
 //-----------------------------------PRELOADER------------------------------------------------------------------
 
 
 //-----------------------------------SETUP AND DRAW------------------------------------------------------------------
 p.setup = function() {
   // show welcome screen
-  //romanHoliday.setVolume(1);
+ // romanHoliday.setVolume(0.2);
+  //romanHoliday.play();
   p.createCanvas(600, 400);
   groundHeight = 10;
-  countdown = 100;
+  countdown = 150;
   tigerVelocity = 20;
   girlVelocity = 20;  
-  girlX = 245;
-  girlY = 300;
-  
+  girlX = 425;
+  girlY = 350;
   tigerX = 70;
-  tigerY = 280;
-  
+  tigerY = 160;
   keyX = p.random(p.width);
   keyY = p.random(p.height);
     
@@ -91,6 +97,7 @@ p.draw = function() {
   
   let isCollision1 = handleCollision1(girlX,girlY,tigerX,tigerY);
   let isCollision2 = handleCollision2(girlX,girlY,keyX,keyY);
+  let isCollision3 = handleCollision3(girlX, girlY, heartX, heartY);
   
   if (isCollision1) {
     gameOver();
@@ -99,13 +106,19 @@ p.draw = function() {
  if (isCollision2) {
      countdown = countdown + 10;
      keyCount += 1;
-    if (keyCount == 10){
-    congratulations();
-    gameOver();
-  }
+    
      redraw();
      randomizeKey();
-  }                             
+  } 
+  
+  if (keyCount == 10){
+    congratulations();
+  }
+  
+  if (isCollision3){
+    countdown = countdown + 25;
+    randomizeHeart();
+  }
 
 };
 
@@ -178,7 +191,7 @@ function rulesScreen() {
     p.textFont(bitFont);
     p.text("TIGER: AWSD    GIRL: ARROWS", 50, 125);
     p.text("COLLECT ALL KEYS TO SAVE THE", 50, 150); //TODO: create a function that increases speed for some period of time or period of frames when the ALT key is pressed
-    p.text("TOWN WITHIN 100 MOVES!", 50, 175);
+    p.text("TOWN WITHIN 200 MOVES!", 50, 175);
     p.text("PRESS ESC TO RETURN", 50, 390);
     p.image(tiger, 50, 160, 300, 200);
     p.image(girlOnSkateboard, 330, 170, 250, 200);
@@ -221,20 +234,30 @@ function showKey(){
   p.image(keyImage, keyX, keyY, 20, 30);
 }
 
+function showHeart () {
+  
+  
+}
+
+
 function randomizeKey(){
     keyX = p.random(p.width - 20);
     keyY = p.random(p.height - 20);
     p.image(keyImage, keyX, keyY, 20, 30);
 }
 
+function randomizeHeart () {
+  heartX = p.random(p.width - 20);
+  heartY = p.random (p.width - 20);
+  p.image(heart, heartX, heartY, 20, 30);
+}
 
 p.keyPressed = function (){
   console.log("keyPressed has run");
   playGame();
   showKey();
-
-  //showTiger();
-  //showGirl();
+  
+  
     // go to level one
   if (p.keyCode === (p.ENTER)){
     
@@ -299,7 +322,12 @@ function redraw(){
     showTiger();
     handleTime();
     showKey();
+  
+  if ((70 <= countdown <= 120)){
+       showHeart(); 
+    }
     p.text(`Moves Left: ${countdown}`, 20, 40);
+    p.text(`Keys Collected: ${keyCount}`, 20, 70);
 }
 
 
@@ -307,10 +335,11 @@ function redraw(){
   
 function playGame() {
   console.log("play function is running");
-  p.text(`Moves Left: ${countdown}`, 20, 40);
-  p.text(`Keys Collected: ${keyCount}`, 20, 50);
+  // p.text(`Moves Left: ${countdown}`, 20, 40);
+  // p.text(`Keys Collected: ${keyCount}`, 20, 40);
   showGirl();
   showTiger();
+  
   
   // directions to start
     p.fill("orange");
@@ -333,42 +362,69 @@ function handleCollision1(girlX, girlY, tigerX, tigerY) {
   return hit;
 }
 
+function handleCollision3(girlX, girlY, heartX, heartY){
+   let hit = p.collideCircleCircle(girlX, girlY, 25, heartX, heartY, 27);
+    return hit;
+}
+
+
 function handleCollision2(girlX, girlY, keyX, keyY) {
   // We'll write code for what happens if your character hits a coin.
   let hit = p.collideCircleCircle(girlX, girlY, 25, keyX, keyY, 27);
   return hit;
 }
+
+
+
 //------------------------------------RESTART ENTIRE GAME------------------------------------------------------------------
 function restartEntireGame() {
   if (p.keyCode === p.ESCAPE) {
     backgroundColor = p.color("black");
     p.background(backgroundColor);
     welcomeScreen();   
-    countdown = 50;
+    countdown = 150;
   } 
 }
   
 
 //------------------------------------------------------GAME OVER and CONGRATULATIONS FUNCTIONS--------------------------------------------------------------------
 function gameOver(){
+    backgroundColor = p.color("black");
+    p.background(backgroundColor);  
+    
+    p.strokeWeight(10);
+    p.stroke("white");
     p.fill("orange");
-    p.textSize(30);
+    p.textSize(50);
     p.textFont(bitFont);
-    p.text("GAME OVER", 50, 125);
+    p.text("GAME OVER!", 50, 225);
   
     p.fill("orange");
     p.textSize(20);
     p.textFont(bitFont);
-    p.text("PRESS ESC TO TRY AGAIN", 50, 150);
+    p.text("WANT TO PLAY AGAIN?", 105, 325);
+  
+   // restartEntireGame();
     
 }
 
 function congratulations(){
-    p.image(town, 0, 0, 600, 400);
+  
+  backgroundColor = p.color("black");
+    p.background(backgroundColor);  
+   
+    p.strokeWeight(10);
+    p.stroke("white");
+  
     p.fill("orange");
-    p.textSize(40);
+    p.textSize(30);
     p.textFont(bitFont);
-    p.text("YOU DID IT!", 50, 100);
+    p.text("CONGRATULATIONS", 90, 150);
+  
+    p.fill("orange");
+    p.textSize(30);
+    p.textFont(bitFont);
+    p.text("WONDERFUL JOB!", 45, 325);
 }
 
 
