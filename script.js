@@ -3,6 +3,12 @@
 //------------------------------------VARIABLES------------------------------------------------------------------
 
 let p = new p5(() => {});
+  //     <script src="path/to/p5.sound.js"></script>
+  //      <script src="http://caniuse.com/audio-api"></script>
+
+  //p.preload = function () {
+  //let romanHoliday = p.loadSound ("https://cdn.glitch.com/2665923f-eb16-4b6e-9c3b-2bfe24cee104%2FRoman%20Holiday%20-%20Nicki%20Minaj%20-%20(Instrumental).mp3?v=1596035581028");
+  //}
 
 let bitFont = p.loadFont(
   "https://cdn.glitch.com/2665923f-eb16-4b6e-9c3b-2bfe24cee104%2FPressStart2P-vaV7.ttf?v=1595817566106");
@@ -25,8 +31,8 @@ let town = p.loadImage(
   "https://cdn.glitch.com/2665923f-eb16-4b6e-9c3b-2bfe24cee104%2Ftown.jpeg?v=1595986906913"
 );
 
-let keyImage = p.loadImage ("https://cdn.glitch.com/2665923f-eb16-4b6e-9c3b-2bfe24cee104%2FKey%20(2).png?v=1596027531293");
-let keyX, keyY;
+let keyImage = p.loadImage("https://cdn.glitch.com/2665923f-eb16-4b6e-9c3b-2bfe24cee104%2FKey%20(2).png?v=1596027531293");
+let keyX = 300, keyY = 200;
 // canva detail variables
 let backgroundColor;
 //key triggers
@@ -37,7 +43,7 @@ let startRect, rulesRect;
 let groundHeight = 50;
 let girlX, girlY, girlWidth, girlHeight, girlVelocity;
 let tigerX, tigerY, tigerWidth, tigerHeight, tigerVelocity;
-let countdown;
+let countdown, keysCollected;
 let romanHoliday;
 let keyCount = 0;
 
@@ -50,20 +56,15 @@ let startButton;
 let col = p.color("orange");
 
 //-----------------------------------PRELOADER------------------------------------------------------------------
-p.preload = function() {
-//function preload() {
-  //p.soundFormats('mp3', 'ogg');
-  //romanHoliday = p.loadSound("https://cdn.glitch.com/2665923f-eb16-4b6e-9c3b-2bfe24cee104%2FRoman%20Holiday%20-%20Nicki%20Minaj%20-%20(Instrumental).mp3?v=1596035581028");
-}
+
 
 //-----------------------------------SETUP AND DRAW------------------------------------------------------------------
 p.setup = function() {
   // show welcome screen
-  // romanHoliday.setVolume(0.2);
-   //romanHoliday.play();
+  //romanHoliday.setVolume(1);
   p.createCanvas(600, 400);
   groundHeight = 10;
-  countdown = 51;
+  countdown = 100;
   tigerVelocity = 20;
   girlVelocity = 20;  
   girlX = 245;
@@ -77,11 +78,12 @@ p.setup = function() {
     
   welcomeScreen();
   
+  keyCount = 0;
+  
 };
 
 p.draw = function() {
   
-  //welcomeScreen();
   restartEntireGame();    
   //levelOne();
   let timeRemaining = "Time remaining: " + countdown;
@@ -96,11 +98,15 @@ p.draw = function() {
   
  if (isCollision2) {
      countdown = countdown + 10;
+     keyCount += 1;
+    if (keyCount == 10){
+    congratulations();
+    gameOver();
+  }
      redraw();
-     showKey();
+     randomizeKey();
   }                             
-  //game functions
-   //play();
+
 };
 
 
@@ -172,7 +178,7 @@ function rulesScreen() {
     p.textFont(bitFont);
     p.text("TIGER: AWSD    GIRL: ARROWS", 50, 125);
     p.text("COLLECT ALL KEYS TO SAVE THE", 50, 150); //TODO: create a function that increases speed for some period of time or period of frames when the ALT key is pressed
-    p.text("TOWN WITHIN 50 MOVES!", 50, 175);
+    p.text("TOWN WITHIN 100 MOVES!", 50, 175);
     p.text("PRESS ESC TO RETURN", 50, 390);
     p.image(tiger, 50, 160, 300, 200);
     p.image(girlOnSkateboard, 330, 170, 250, 200);
@@ -182,7 +188,7 @@ function rulesScreen() {
 //-----------------------------LEVEL ONE FUNCTION--------------------------------------------------------------------------------------------
 function levelOne() {
     console.log("levelOne has run");
-    showKey();
+    randomizeKey();
     showGirl();
     showTiger();
     handleTime();
@@ -212,22 +218,20 @@ function showGirl(){
 }
 
 function showKey(){
-    keyX = p.random(p.width);
-    keyY = p.random(p.height);
+  p.image(keyImage, keyX, keyY, 20, 30);
+}
+
+function randomizeKey(){
+    keyX = p.random(p.width - 20);
+    keyY = p.random(p.height - 20);
     p.image(keyImage, keyX, keyY, 20, 30);
 }
 
-function keyCollect(){
-  keyCount += 1;
-  if (keyCount == 10){
-    congratulations();
-  }
-}
 
 p.keyPressed = function (){
   console.log("keyPressed has run");
   playGame();
-  
+  showKey();
 
   //showTiger();
   //showGirl();
@@ -235,6 +239,7 @@ p.keyPressed = function (){
   if (p.keyCode === (p.ENTER)){
     
     levelOne();
+    
   }
   if (p.keyCode === (p.SHIFT)){
     rulesScreen();
@@ -292,7 +297,8 @@ function redraw(){
     p.image(town, 0, 0, 600, 400);
     showGirl();
     showTiger();
-  handleTime();
+    handleTime();
+    showKey();
     p.text(`Moves Left: ${countdown}`, 20, 40);
 }
 
@@ -302,6 +308,7 @@ function redraw(){
 function playGame() {
   console.log("play function is running");
   p.text(`Moves Left: ${countdown}`, 20, 40);
+  p.text(`Keys Collected: ${keyCount}`, 20, 50);
   showGirl();
   showTiger();
   
@@ -328,7 +335,7 @@ function handleCollision1(girlX, girlY, tigerX, tigerY) {
 
 function handleCollision2(girlX, girlY, keyX, keyY) {
   // We'll write code for what happens if your character hits a coin.
-  let hit = p.collideCircleCircle(girlX, girlY, 30, keyX, keyY, 20);
+  let hit = p.collideCircleCircle(girlX, girlY, 25, keyX, keyY, 27);
   return hit;
 }
 //------------------------------------RESTART ENTIRE GAME------------------------------------------------------------------
@@ -357,6 +364,7 @@ function gameOver(){
 }
 
 function congratulations(){
+    p.image(town, 0, 0, 600, 400);
     p.fill("orange");
     p.textSize(40);
     p.textFont(bitFont);
